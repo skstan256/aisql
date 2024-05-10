@@ -1,0 +1,62 @@
+{
+  "strategy": "single_domain_double_shot",
+  "prompt_prefix": "CREATE TABLE VendingItem (\n  ID INTEGER PRIMARY KEY,\n  Name TEXT,\n  IsGlutenFree INTEGER,\n  IsLowDairy INTEGER,\n  IsNutFree INTEGER,\n  IsSoyFree INTEGER\n);\n\nCREATE TABLE VendingMachineLocation (\n  ID INTEGER PRIMARY KEY,\n  Room TEXT,\n  Building TEXT\n);\n\nCREATE TABLE VendingItemLocation (\n  ItemID INTEGER,\n  LocationID INTEGER,\n  PRIMARY KEY (ItemID, LocationID),\n  FOREIGN KEY (ItemID) REFERENCES VendingItem (ID),\n  FOREIGN KEY (LocationID) REFERENCES VendingMachineLocation (ID)\n);\n Can you give me a list of all the nut free snacks?  \nSELECT Name\nFROM VendingItem\nWHERE IsNutFree = 1;Writing in SQlite, give a select statement that answers the question. Please only give the select statement and do not say anything else.",
+  "questionResults": [
+    {
+      "question": "Which buildings have gluten free items?",
+      "sql": "SELECT DISTINCT Building\nFROM VendingMachineLocation\nWHERE ID IN (\n  SELECT LocationID\n  FROM VendingItemLocation\n  WHERE ItemID IN (\n    SELECT ID\n    FROM VendingItem\n    WHERE IsGlutenFree = 1\n  )\n);",
+      "queryRawResponse": "[('WSC',), ('MARB',), ('JFSB',)]",
+      "friendlyResponse": "Sure! The buildings that offer gluten-free items are WSC, MARB, and JFSB.",
+      "error": "None"
+    },
+    {
+      "question": "Can you pick a random soy free snack and tell me where to find it?",
+      "sql": "SELECT Name, Room, Building\nFROM VendingItem\nJOIN VendingItemLocation ON VendingItem.ID = VendingItemLocation.ItemID\nJOIN VendingMachineLocation ON VendingItemLocation.LocationID = VendingMachineLocation.ID\nWHERE IsSoyFree = 1\nORDER BY RANDOM()\nLIMIT 1;",
+      "queryRawResponse": "[('Peanuts', '3202', 'WSC')]",
+      "friendlyResponse": "Sure, you can find soy-free peanuts at WSC.",
+      "error": "None"
+    },
+    {
+      "question": "Which building has the most vending machines?",
+      "sql": "SELECT Building, COUNT(*) AS MachineCount\nFROM VendingMachineLocation\nGROUP BY Building\nORDER BY MachineCount DESC\nLIMIT 1;",
+      "queryRawResponse": "[('WSC', 2)]",
+      "friendlyResponse": "The WSC building has the most vending machines with 2.",
+      "error": "None"
+    },
+    {
+      "question": "Which vending machine items meet all dietary restrictions?",
+      "sql": "SELECT Name\nFROM VendingItem\nWHERE IsGlutenFree = 1\nAND IsLowDairy = 1\nAND IsNutFree = 1\nAND IsSoyFree = 1;",
+      "queryRawResponse": "[('Granola Bar',), ('Popcorn',)]",
+      "friendlyResponse": "The vending machine items that meet all dietary restrictions are Granola Bars and Popcorn.",
+      "error": "None"
+    },
+    {
+      "question": "Can you give me a list of all the items in a random vending machine?",
+      "sql": "SELECT Name\nFROM VendingItem\nWHERE ID IN (\n  SELECT ItemID\n  FROM VendingItemLocation\n  WHERE LocationID = (SELECT ID FROM VendingMachineLocation ORDER BY RANDOM() LIMIT 1)\n);",
+      "queryRawResponse": "[('Chips',), ('Chocolate Bar',)]",
+      "friendlyResponse": "Sure! The items in the random vending machine are chips and a chocolate bar.",
+      "error": "None"
+    },
+    {
+      "question": "Can you give me the location of the vending machine with the most items in stock?",
+      "sql": "SELECT vml.Room, vml.Building\nFROM VendingMachineLocation vml\nJOIN VendingItemLocation vil ON vml.ID = vil.LocationID\nGROUP BY vml.ID\nORDER BY COUNT(vil.ItemID) DESC\nLIMIT 1;",
+      "queryRawResponse": "[('110', 'MARB')]",
+      "friendlyResponse": "The vending machine with the most items in stock is located at 110 MARB.",
+      "error": "None"
+    },
+    {
+      "question": "What are all the low dairy items available?",
+      "sql": "SELECT Name\nFROM VendingItem\nWHERE IsLowDairy = 1;",
+      "queryRawResponse": "[('Granola Bar',), ('Peanuts',), ('Popcorn',)]",
+      "friendlyResponse": "Sure! Some low dairy options available are granola bars, peanuts, and popcorn.",
+      "error": "None"
+    },
+    {
+      "question": "I am allergic to nuts and my friend has Celiac Disease. Can you tell us where a vending machine is with snacks both of us can eat?",
+      "sql": "SELECT VendingMachineLocation.Room, VendingMachineLocation.Building\nFROM VendingMachineLocation\nJOIN VendingItemLocation ON VendingMachineLocation.ID = VendingItemLocation.LocationID\nJOIN VendingItem ON VendingItemLocation.ItemID = VendingItem.ID\nWHERE VendingItem.IsNutFree = 1 AND VendingItem.IsGlutenFree = 1;",
+      "queryRawResponse": "[('3202', 'WSC'), ('110', 'MARB'), ('030', 'JFSB'), ('Cougar Den', 'WSC'), ('110', 'MARB'), ('3202', 'WSC'), ('Cougar Den', 'WSC'), ('110', 'MARB')]",
+      "friendlyResponse": "Sure! You can find a vending machine with snacks both of you can eat at the Cougar Den in the WSC building.",
+      "error": "None"
+    }
+  ]
+}

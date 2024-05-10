@@ -1,4 +1,4 @@
-CREATE TABLE Item (
+CREATE TABLE VendingItem (
   ID INTEGER PRIMARY KEY,
   Name TEXT,
   IsGlutenFree INTEGER,
@@ -7,16 +7,16 @@ CREATE TABLE Item (
   IsSoyFree INTEGER
 );
 
-CREATE TABLE Location (
+CREATE TABLE VendingMachineLocation (
   ID INTEGER PRIMARY KEY,
-  Name TEXT,
+  Room TEXT,
   Building TEXT
 );
 
-CREATE TABLE ItemLocation (
+CREATE TABLE VendingItemLocation (
   ItemID INTEGER,
   LocationID INTEGER,
   PRIMARY KEY (ItemID, LocationID),
-  FOREIGN KEY (ItemID) REFERENCES Item (ID),
-  FOREIGN KEY (LocationID) REFERENCES Location (ID)
+  FOREIGN KEY (ItemID) REFERENCES VendingItem (ID),
+  FOREIGN KEY (LocationID) REFERENCES VendingMachineLocation (ID)
 );
